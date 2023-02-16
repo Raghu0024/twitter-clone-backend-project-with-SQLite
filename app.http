@@ -1,5 +1,5 @@
 
-post http://localhost:3000/login/
+post http://localhost:3001/login/
 Content-Type: application/json
 
 {
@@ -16,3 +16,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZ
 
 get http://localhost:3000/user/followers/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc2Mzk4NjkzfQ.rTRdVEtkYvsaTFl1_kQfScy-i7ZWZgjIea8wNbHcTdE
+
+###
+
+get http://localhost:3001/tweets/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc2NTc4NDc1fQ.AqAvBxqfRi4a1y5EUEpaya0FtWAf-ijzATvsa8gtTYM

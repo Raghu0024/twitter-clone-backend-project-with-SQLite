@@ -18,7 +18,7 @@ const initializeDatabaseAndServer = async () => {
       filename: databasePath,
       driver: sqlite3.Database,
     });
-    app.listen(3000, () => {
+    app.listen(3001, () => {
       console.log("Server running at http://localhost:3000");
     });
   } catch (error) {
@@ -44,7 +44,9 @@ app.post("/register/", async (request, response) => {
       response.send("Password is too short");
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
-      const createUserQuery = `INSERT INTO user(name,username,password,gender) VALUES ('${name}','${username}','${hashedPassword}','${gender}');`;
+      const createUserQuery = `INSERT INTO 
+      user(name,username,password,gender) 
+      VALUES ('${name}','${username}','${hashedPassword}','${gender}');`;
       await database.run(createUserQuery);
       console.log(1);
       response.status(200);
@@ -153,8 +155,37 @@ app.get("/user/followers/", authenticateToken, async (request, response) => {
 
 //API 6
 
+const responseTweet = (tweet) => {
+  return {
+    tweet: tweet.tweet,
+    likes: tweet.likes,
+    replies: tweet.replies,
+    dateTime: tweet.dateTime,
+  };
+};
+
 app.get("/tweets/:tweetId/", authenticateToken, async (request, response) => {
   const { tweetId } = request.params;
+  const { username } = request;
+  const getUserFollowing = `select t4.tweet as tweet,count(like.like_id) as likes,t4.replies as replies,t4.date_time as dateTime 
+  from (select t3.user_id,t3.tweet_id,t3.tweet,t3.date_time,count(reply.reply_id) as replies 
+  from (select * from (SELECT user.user_id 
+  FROM (SELECT follower.following_user_id 
+  FROM user INNER JOIN follower ON user.user_id=follower.follower_user_id 
+  WHERE user.username='${username}') AS t1 
+  INNER JOIN user ON t1.following_user_id=user.user_id) as t2 
+  inner join tweet on t2.user_id=tweet.user_id where tweet.tweet_id=${tweetId}) as t3 
+  inner join reply on t3.tweet_id=reply.tweet_id) as t4 
+  inner join like on t4.tweet_id=like.tweet_id;`;
+  const tweet = await database.all(getUserFollowing);
+  if (tweet.tweet === null) {
+    response.status(401);
+    response.send("Invalid Request");
+  } else {
+    const tweet1 = responseTweet(tweet);
+    console.log(tweet1);
+    response.send(tweet1);
+  }
 });
 
 module.exports = app;
