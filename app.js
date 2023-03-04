@@ -188,4 +188,38 @@ app.get("/tweets/:tweetId/", authenticateToken, async (request, response) => {
   }
 });
 
+// API 7
+
+const responseLikes = (likes) => {
+  let likesArray = [];
+  for (let i of likes) {
+    likesArray.push(i.name);
+  }
+  return { likes: likesArray };
+};
+
+app.get(
+  "/tweets/:tweetId/likes/",
+  authenticateToken,
+  async (request, response) => {
+    const { tweetId } = request.params;
+    const { username } = request;
+    const getUserFollowingTweetLikesQuery = `select name from
+    (select like.user_id as user_id from 
+        (select tweet_id from 
+            (select user_id,following_user_id as following from user inner join follower 
+            on user.user_id = follower.follower_user_id where username='${username}') 
+        as t1 inner join tweet on t1.following=tweet.user_id where tweet_id=${tweetId}) 
+    as t2 inner join like on t2.tweet_id=like.tweet_id) 
+    as t3 inner join user on t3.user_id=user.user_id;`;
+    const likes = await database.all(getUserFollowingTweetLikesQuery);
+    if (likes === undefined) {
+      response.status(401);
+      response.send("Invalid Request");
+    } else {
+      response.send(responseLikes(likes));
+    }
+  }
+);
+
 module.exports = app;
