@@ -18,7 +18,7 @@ const initializeDatabaseAndServer = async () => {
       filename: databasePath,
       driver: sqlite3.Database,
     });
-    app.listen(3001, () => {
+    app.listen(3000, () => {
       console.log("Server running at http://localhost:3000");
     });
   } catch (error) {
@@ -221,5 +221,53 @@ app.get(
     }
   }
 );
+
+//API 8
+
+app.get(
+  "/tweets/:tweetId/replies/",
+  authenticateToken,
+  async (request, response) => {
+    const { tweetId } = request.params;
+    const { username } = request;
+    const getUserFollowingTweetReplyQuery = `select name,reply from
+      (select reply.user_id as user_id,reply.reply as reply from 
+        (select tweet_id from 
+            (select user_id,following_user_id as following from user 
+            inner join follower on user.user_id = follower.follower_user_id where username='${username}') as t1 
+            inner join tweet on t1.following=tweet.user_id where tweet_id=${tweetId}) as t2 
+            inner join reply on t2.tweet_id=reply.tweet_id) as t3 
+            inner join user on t3.user_id=user.user_id;`;
+    const replies = await database.all(getUserFollowingTweetReplyQuery);
+    if (replies === undefined) {
+      response.status(401);
+      response.send("Invalid Request");
+    } else {
+      response.send(replies);
+    }
+  }
+);
+
+//API 9
+
+app.get("/user/tweets/", authenticateToken, async (request, response) => {
+  const { username } = request;
+  const getUserTweets = `select t2.tweet as tweet,count(distinct t3.like_id)as likes,count(distinct t3.reply_id) as replies, t2.date_time as dateTime from
+    (select tweet_id,tweet,date_time from 
+        (select user_id from user where username='${username}') as t1 
+        inner join tweet on t1.user_id=tweet.user_id) as t2 
+        inner join (select reply.tweet_id,reply.reply_id,like.like_id from reply 
+            inner join like on reply.tweet_id=like.tweet_id)as t3 
+            on t2.tweet_id=t3.tweet_id group by t2.tweet_id;`;
+  const tweets = await database.all(getUserTweets);
+  response.send(tweets);
+});
+
+//API 10
+
+app.post("/user/tweets/", authenticateToken, (request, response) => {
+  const { username } = request;
+  const { tweet } = request.body;
+});
 
 module.exports = app;

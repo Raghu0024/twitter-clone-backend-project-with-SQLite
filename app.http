@@ -1,5 +1,5 @@
 
-post http://localhost:3001/login/
+post http://localhost:3000/login/
 Content-Type: application/json
 
 {
@@ -19,5 +19,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZ
 
 ###
 
-get http://localhost:3001/tweets/1/likes/
+get http://localhost:3000/tweets/1/likes/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3OTU3MzU3fQ.zYloFWxGiXajZurfpQ5NoD3WIZ4CjI3Xswsrvs8uq2Y
+
+###
+
+get http://localhost:3000/tweets/1/replies/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc4MDM1Njg3fQ.ODZD5YRATRVf_8oKtDzjqcxCmy49lRn8FhjSw_3FRnM
+
+###
+
+get http://localhost:3000/user/tweets
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc4MDQyNTEwfQ.GnIK4wg97tjlabYBnGpEVKm0vBu-XEKdjMLyyPWNe9k
