@@ -29,5 +29,5 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZ
 
 ###
 
-get http://localhost:3000/user/tweets
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc4MDQyNTEwfQ.GnIK4wg97tjlabYBnGpEVKm0vBu-XEKdjMLyyPWNe9k
+post http://localhost:3000/user/tweets/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc4MTI3MzAxfQ.CysX839BV4BSvky1hIiX3NEiXDiGdwf1OFce-ZYLCGg

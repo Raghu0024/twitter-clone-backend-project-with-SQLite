@@ -265,9 +265,40 @@ app.get("/user/tweets/", authenticateToken, async (request, response) => {
 
 //API 10
 
-app.post("/user/tweets/", authenticateToken, (request, response) => {
+app.post("/user/tweets/", authenticateToken, async (request, response) => {
   const { username } = request;
   const { tweet } = request.body;
+  const getUserIdQuery = `select user_id from user where username='${username}';`;
+  const userId = await database.get(getUserIdQuery);
+  const date = new Date();
+  console.log(date);
+  const dateTime = `${date.getFullYear()}-${date.getMonth()}-${date.getDay()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  console.log(dateTime);
+  const createTweetQuery = `insert into tweet(tweet,user_id,date_time)
+  values('${tweet}',${userId},${dateTime})`;
+  await database.run(createTweetQuery);
+  response.send("Created a Twee");
 });
+
+//API 11
+
+app.delete(
+  "/tweets/:tweetId/",
+  authenticateToken,
+  async (request, response) => {
+    const { tweetId } = request.params;
+    const { username } = request;
+    const getUserIdQuery = `select tweet.tweet_id from (select user_id from user where username='${username}') as t1 on inner join tweet on t1.user_id=tweet.user_id where tweet.tweet_id=${tweetId} ;`;
+    const userId = await database.get(getUserIdQuery);
+    if (userId === undefined) {
+      response.status(401);
+      response.send("Invalid Request");
+    } else {
+      const deleteTweetQuery = `delete from tweet where tweet_id=${tweetId};`;
+      await database.run(deleteTweetQuery);
+      response.send("Tweet Removed");
+    }
+  }
+);
 
 module.exports = app;
