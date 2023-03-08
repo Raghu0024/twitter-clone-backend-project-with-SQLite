@@ -109,11 +109,18 @@ const authenticateToken = (request, response, next) => {
 
 // API 3
 
-app.get(
-  "/user/tweets/feed/",
-  authenticateToken,
-  async (request, response) => {}
-);
+app.get("/user/tweets/feed/", authenticateToken, async (request, response) => {
+  const { username } = request;
+  const getTweetsQuery = `select username,tweet,date_time as dateTime from 
+  (SELECT username,t1.user_id FROM 
+    (SELECT follower.following_user_id as user_id FROM user 
+        INNER JOIN follower ON user.user_id=follower.follower_user_id WHERE user.username='${username}') AS t1 
+        INNER JOIN user ON t1.user_id=user.user_id) as t1 
+        inner join tweet on t1.user_id=tweet.user_id order by tweet.date_time asc limit 4;`;
+  const tweets = await database.all(getTweetsQuery);
+  console.log(tweets);
+  response.send(tweets);
+});
 
 // API 4
 
@@ -155,15 +162,6 @@ app.get("/user/followers/", authenticateToken, async (request, response) => {
 
 //API 6
 
-const responseTweet = (tweet) => {
-  return {
-    tweet: tweet.tweet,
-    likes: tweet.likes,
-    replies: tweet.replies,
-    dateTime: tweet.dateTime,
-  };
-};
-
 app.get("/tweets/:tweetId/", authenticateToken, async (request, response) => {
   const { tweetId } = request.params;
   const { username } = request;
@@ -177,14 +175,13 @@ app.get("/tweets/:tweetId/", authenticateToken, async (request, response) => {
   inner join tweet on t2.user_id=tweet.user_id where tweet.tweet_id=${tweetId}) as t3 
   inner join reply on t3.tweet_id=reply.tweet_id) as t4 
   inner join like on t4.tweet_id=like.tweet_id;`;
-  const tweet = await database.all(getUserFollowing);
+  const tweet = await database.get(getUserFollowing);
   if (tweet.tweet === null) {
     response.status(401);
     response.send("Invalid Request");
   } else {
-    const tweet1 = responseTweet(tweet);
-    console.log(tweet1);
-    response.send(tweet1);
+    console.log(tweet);
+    response.send(tweet);
   }
 });
 
@@ -217,6 +214,7 @@ app.get(
       response.status(401);
       response.send("Invalid Request");
     } else {
+      console.log(responseLikes(likes));
       response.send(responseLikes(likes));
     }
   }
@@ -243,6 +241,7 @@ app.get(
       response.status(401);
       response.send("Invalid Request");
     } else {
+      console.log(replies);
       response.send(replies);
     }
   }
@@ -260,6 +259,7 @@ app.get("/user/tweets/", authenticateToken, async (request, response) => {
             inner join like on reply.tweet_id=like.tweet_id)as t3 
             on t2.tweet_id=t3.tweet_id group by t2.tweet_id;`;
   const tweets = await database.all(getUserTweets);
+  console.log(tweets);
   response.send(tweets);
 });
 
@@ -271,13 +271,12 @@ app.post("/user/tweets/", authenticateToken, async (request, response) => {
   const getUserIdQuery = `select user_id from user where username='${username}';`;
   const userId = await database.get(getUserIdQuery);
   const date = new Date();
-  console.log(date);
   const dateTime = `${date.getFullYear()}-${date.getMonth()}-${date.getDay()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-  console.log(dateTime);
-  const createTweetQuery = `insert into tweet(tweet,user_id,date_time)
-  values('${tweet}',${userId},${dateTime})`;
-  await database.run(createTweetQuery);
-  response.send("Created a Twee");
+  const createTweetQuery = `insert into
+    tweet(tweet,user_id,date_time)
+    values('${tweet}',${userId.user_id},'${dateTime}');`;
+  const value = await database.run(createTweetQuery);
+  response.send("Created a Tweet");
 });
 
 //API 11
@@ -288,8 +287,9 @@ app.delete(
   async (request, response) => {
     const { tweetId } = request.params;
     const { username } = request;
-    const getUserIdQuery = `select tweet.tweet_id from (select user_id from user where username='${username}') as t1 on inner join tweet on t1.user_id=tweet.user_id where tweet.tweet_id=${tweetId} ;`;
+    const getUserIdQuery = `select tweet.tweet_id from (select user_id from user where username='${username}') as t1 inner join tweet on t1.user_id=tweet.user_id where tweet.tweet_id=${tweetId} ;`;
     const userId = await database.get(getUserIdQuery);
+    console.log(userId);
     if (userId === undefined) {
       response.status(401);
       response.send("Invalid Request");
