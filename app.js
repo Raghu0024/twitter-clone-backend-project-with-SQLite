@@ -116,7 +116,7 @@ app.get("/user/tweets/feed/", authenticateToken, async (request, response) => {
     (SELECT follower.following_user_id as user_id FROM user 
         INNER JOIN follower ON user.user_id=follower.follower_user_id WHERE user.username='${username}') AS t1 
         INNER JOIN user ON t1.user_id=user.user_id) as t1 
-        inner join tweet on t1.user_id=tweet.user_id order by tweet.date_time asc limit 4;`;
+        inner join tweet on t1.user_id=tweet.user_id order by tweet.date_time desc limit 4;`;
     const tweets = await database.all(getTweetsQuery);
     console.log(tweets);
     response.send(tweets);
